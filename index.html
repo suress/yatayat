@@ -5,53 +5,37 @@
         <title>
             Kathmandu Public Transport
         </title>
-        <link rel="stylesheet" href="lib/leaflet/leaflet.css" />
+        <!--link rel="stylesheet" href="lib/leaflet/leaflet.css" /-->
+        <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.css" />
         <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="lib/leaflet/Control.OSMGeocoder.css">
         <link rel="stylesheet" href="lib/yatayat.css" />
+        <link rel="stylesheet" href="lib/autocomplete_styles.css">
         <!--[if lte IE 8]>
             <link rel="stylesheet" href="lib/leaflet/leaflet.ie.css" />
         <![endif] -->
-        <script src="lib/jquery-1.7.2.min.js">
-                
-        </script>
-        <script src="lib/underscore-min.js">
-                
-        </script>
-        <script src="lib/leaflet/leaflet.js">
-                
-        </script>
-        <script src="lib/leaflet/spin.min.js">
-                
-        </script>
-        <script src="lib/leaflet/leaflet.spin.js">
-                
-        </script>
-        <script src="lib/wax.leaf.min.js">
-                
-        </script>
-        <script src="lib/kdtree/src/web/kdTree.js">
-                
-        </script>
-        <script src="lib/bootstrap/js/bootstrap.min.js">
-                
-        </script>
-        <script src="yatayat.js">
-                
-        </script>
-        <script type="text/javascript" src="lib/leaflet/Control.OSMGeocoder.js">
-                
-        </script>
-        <script src="lib/routeinfopanel.js">
-                
-        </script>
+        <!--script src="lib/jquery-1.7.2.min.js"> </script-->
+        <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.js"></script>
+        <!--<script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script> -->
+        <script type="text/javascript" src="lib/jquery.autocomplete.min.js"></script>
+        <script src="lib/underscore-min.js"> </script>
+        <script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js"></script>
+        <!--script src="lib/leaflet/leaflet-src.js"> </script-->
+        <script src="lib/leaflet/spin.min.js"> </script>
+        <script src="lib/leaflet/leaflet.spin.js"> </script>
+        <script src="lib\leaflet\Leaflet.PolylineDecorator\leaflet.polylineDecorator.min.js"></script> 
+        <script src="lib/wax.leaf.min.js"> </script>
+        <script src="lib/kdTree-min.js"> </script>
+        <script src="lib/bootstrap/js/bootstrap.min.js"> </script>
+        <script src="yatayat.js"> </script>
+        <script src="lib/routeinfopanel.js"> </script>
+ 
     </head>
     
     <body>
         <div id="Title">
-            Kathmandu Public Transport
+            Kathmandu Valley Public Transport App
         </div>
-        <div class="alert" id="routedisplay" style="background:white;position:absolute;top:40;left:60;z-index:999">
+        <div class="alert" id="routedisplay" style="position:absolute;top:60;left:60;z-index:999;width:60%;background-color:rgb(228, 237, 249)">
         </div>
         <div id="publicTransportMap" style="width:80%; height: 100%">
             Loading ...
@@ -63,269 +47,33 @@
                 </button>
             </div>
             <br/>
-            <iframe src="https://docs.google.com/spreadsheet/embeddedform?formkey=dFdZeG9PYnVpY1FBMk4zVjBDaFNua1E6MQ"
-            width="700" height="500" frameborder="0" marginheight="0" marginwidth="0">
-                Loading...
-            </iframe>
-            // suresh work
         </div>
 		<div id="Attribution" style="width:37%; height:3%; position:absolute; bottom:0px; right:20%">
-            "Powered By" <a href="http://leaflet.cloudmade.com">Leaflet</a>
-            "  Data &copy; <a href="http://www.openstreetmap.org/copyright/en">OpenStreetMap</a>
-            " contributors (ODbL), Imagery &copy; <a href="http://mapbox.com/">MapBox</a>
+            Powered By <a href="http://leaflet.cloudmade.com">Leaflet</a>,
+            Data &copy; <a href="http://www.openstreetmap.org/copyright/en">OpenStreetMap</a> contributors,
+            Imagery and bus icon from <a href="http://mapbox.com/">MapBox</a>
         </div>
-        <script type="text/javascript" language="javascript">
-                    // UI HACK
-            $('#textboxes').hide();
-            $('#routedisplay').hide()
-            // initialize the map
-            var map = new L.Map('publicTransportMap');
-            // var LC = new L.Control.Layers().addTo(map);
-            var osmGeocoder = new L.Control.OSMGeocoder({
-                position: 'topleft'
-            });
-            map.addControl(osmGeocoder);
-
-            //var ktmBB = "85.2885,27.6839,85.3368,27.7299";
-            var system;
-            var osmdata;
-            var routed;
-            var routed_route;
-
-            YY.fromConfig("config.stable.json", function(sys) {
-                // debugger;
-                system = sys;
-                // // console.log(system);
-                YY.render_(system, map, undefined, //includeIDObject; try {"2269045": true} for an example
-                undefined // leafletBaseOptions
-                );
-
-                //ROUTING
-                var stopNames = _.compact(_.pluck(system.allStops(), 'name'));
-                $('.typeahead').typeahead({
-                    source: stopNames
-                });
-                $('#textboxes').show();
-
-                $('input.typeahead').change(function(f) {
-                    map.spin(true);
-                    var start = $('#startstop')[0].value;
-                    var end = $('#endstop')[0].value;
-                    var dist = 0;
-
-                    if (start && end) {
-                        // // // console.log('routing from', start,' to ',end);
-                        if (!YY._routeGroup) {
-                            YY._routeGroup = new L.LayerGroup();
-                        }
-                        YY._routeGroup.clearLayers();
-                        var gettingThereRoutes = system.takeMeThereByName(start, end);
-                        routed = gettingThereRoutes;
-                        var bounds = new L.LatLngBounds();
-                        if (gettingThereRoutes === 'FAIL') alert('cannot find a route from ', start, ' to ', end);
-                        else {
-                            // // console.log('gettingThereRoutes',gettingThereRoutes);
-                            var inclusionDict = {};
-                            var overrideDict = {};
-                            var outputHTML = "";
-                            _(system.routes).each(function(r) {
-                                inclusionDict[r.id] = true;
-                            }); // render everything
-                            counter = 0;
-
-                            _(gettingThereRoutes).each(function(r, idx) {
-                                //inclusionDict[r.id] = true;
-
-                                bounds.extend(new L.LatLng(r.stops[0].lat, r.stops[0].lng));
-                                bounds.extend(new L.LatLng(_.last(r.stops).lat, _.last(r.stops).lng));
-
-                                _(r.stops).each(function(s) {
-                                    inclusionDict[s.id] = true;
-
-                                });
-                                if (idx === 0) {
-                                    overrideDict[r.stops[0].id] = {
-                                        color: 'orange',
-                                        opacity: 1,
-                                        radius: 8
-                                    };
-                                } else {
-                                    overrideDict[r.stops[0].id] = {
-                                        color: 'orange',
-                                        opacity: 1,
-                                        radius: 8
-                                    };
-                                }
-                                if (idx === gettingThereRoutes.length - 1) {
-                                    overrideDict[_.last(r.stops).id] = {
-                                        color: 'orange',
-                                        opacity: 1,
-                                        radius: 8
-                                    };
-                                }
-
-                                //show routed route
-                                var startseg = [];
-                                var endseg = [];
-                                var startsegid, endsegid;
-
-                                //finding index of first and last segment in list of segment
-                                _(r.segments).each(function(seg) {
-                                    // if(startseg.length==0){
-                                    _(seg.listOfLatLng).each(function(ll) {
-                                        if (ll[0] == r.stops[0].lat && ll[1] == r.stops[0].lng) {
-                                            startseg.push(r.segments.indexOf(seg));
-                                            // segorder[r.segments.indexOf(seg)]="start";
-                                            console.log('start', startseg);
-                                        }
-                                    })
-                                    // }
-                                    // if(endseg.length==0){
-                                    _(seg.listOfLatLng).each(function(ll) {
-                                        if (ll[0] == _.last(r.stops).lat && ll[1] == _.last(r.stops).lng) {
-                                            endseg.push(r.segments.indexOf(seg));
-                                            // segorder[r.segments.indexOf(seg)]="end";
-                                            console.log('end', endseg);
-                                        }
-                                    })
-                                    // console.log('segorder',segorder);
-
-                                });
-
-                                if (startseg[0] < endseg[0]) {
-                                    startsegid = startseg[startseg.length - 1];
-                                    endsegid = endseg[0];
-                                } else {
-                                    startsegid = startseg[0];
-                                    endsegid = endseg[endseg.length - 1];
-                                }
-                                //index found and saved as 1st element in startseg and endseg
-                                //actually drawing the route
-                                var defaultOptions = {
-                                    "route": function() {
-                                        return {
-                                            color: get_random_color(),
-                                            opacity: 1,
-                                            weight: 10
-                                        };
-                                    },
-                                    "stop": {
-                                        color: '#378AAD',
-                                        fillOpacity: 0.5,
-                                        radius: 5
-                                    }
-                                    // icon: L.divIcon({html:stop.name})
-                                };
-
-                                var eachroutestyleoption = defaultOptions.route();
-                                dist = 0;
-                                for (segid = Math.min(startsegid, endsegid); segid <= Math.max(startsegid, endsegid); segid++) {
-                                    seg = r.segments[segid];
-                                    // console.log("segid",segid);
-                                    var segMPL = new L.Polyline(seg.listOfLatLng, eachroutestyleoption);
-
-                                    segMPL.bindPopup("<a href='http://www.openstreetmap.org/browse/way/" + seg.id + "' target='_blank'>" + seg.id + "</a>," + segid + "");
-
-                                    YY._routeGroup.addLayer(segMPL);
-                                    for (i = 0; i < (seg.listOfLatLng.length) - 1; i++) {
-                                        dist += distanc(seg.listOfLatLng[i][0], seg.listOfLatLng[i][1], seg.listOfLatLng[i + 1][0], seg.listOfLatLng[i + 1][1]);
-                                    }
-                                    // // console.log('routed_route',routed_route);
-                                    // console.log("dist",dist);
-                                    map.removeLayer(YY._routeGroup);
-                                    map.addLayer(YY._routeGroup);
-                                }
-                                console.log('counter', ++counter);
-                                //sures
-
-                                outputHTML += "Get on " + toTitleCase(r.transport) + " " + r.ref + " (" + r.name + ") at " + r.stops[0].name + " and ride till " + _.last(r.stops).name + "with distance of " + Math.round(dist) + " meters" + "<br/>";
-                            }
-
-                            );
-                            map.fitBounds(bounds);
-                            //sures
-
-                            YY.render_(system, map, inclusionDict, {
-                                route: {
-                                    color: '#378AAD',
-                                    opacity: 1,
-                                    weight: 1
-                                }
-                                // stop: {color: '#378AAD', fillOpacity: 0.5, radius: 5}
-                            }, overrideDict);
-                            $('#routedisplay').show();
-                            $('#routedisplay').html(outputHTML);
-                            map.spin(false);
-
-                        }
-                    } else {
-                        YY.render_(system, map);
-                        $('#routedisplay').hide()
-                        map.spin(false);
-                    }
-                });
-
-                // suresh work
-                routeinfopanel(system.routes);
-                // $('.nav-tabs').button();
-                // suresh work end
-                if (YY.TILE_SOURCE) {
-                    if (YY.WAX) {
-                        wax.tilejson(YY.TILE_SOURCE, function(tilejson) {
-                            map.addLayer(new wax.leaf.connector(tilejson));
-                        });
-                    } else {
-                        var tiles = new L.TileLayer(YY.TILE_SOURCE, {
-                            attribution: YY.ATTRIBUTION
-                        });
-                        map.addLayer(tiles);
-                    }
-                }
-                map.setView(new L.LatLng(YY.LAT, YY.LNG), 13);
-
-                //auto init routing at start
-                // document.getElementById("startstop").value="Ratna Park";
-                // document.getElementById("endstop").value="Balaju";
-                // $('#endstop').change();
-                console.log("script end", system);
-
-            });
-
-            function get_random_color() {
-                var letters = '0123456789ABCDEF'.split('');
-                var color = '#';
-                for (var i = 0; i < 6; i++) {
-                    color += letters[Math.round(Math.random() * 15)];
-                }
-                return color;
-            }
-
-            function toTitleCase(str) {
-                return str.replace(/\w\S*/g, function(txt) {
-                    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-                });
-            }
-        </script>
         <div class="accordion" id="accordion2" position="absolute" style="width:20%; height: 75%" >
             <div class="accordion-group">
                 <div class="accordion-heading">
+
                     <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseOne"><b>Get Direction</b>
                     </a>
                 </div>
                 <div id="collapseOne" class="accordion-body collapse in">
                     <div class="accordion-inner">
                         <div id="textboxes">
-                            <b>
+                            <b style="color: green;">
                                 Start
                             </b>
-                            <input type="text" id="startstop" class="typeahead" data-provide="typeahead"
-                            />
-                            <b>
+                            <input type="text" id="startstop" class="typeahead" data-provide="typeahead" style="color: green;">
+                            <b style="color: rgb(0,57,166);">
                                 End
                             </b>
-                            <input type="text" id="endstop" class="typeahead" data-provide="typeahead"
-                            style="color:red" />
-                            <a class="btn" onclick="$('.typeahead').val(''); $('#routedisplay').hide(); YY._routeGroup.clearLayers();YY.render_(system,map);"> Clear </a>
+                            <input type="text" id="endstop" class="typeahead" data-provide="typeahead" style="color:rgb(0,57,166)" /><br>
+                            <a class="btn" id="go"> GO </a>
+                            <a class="btn" id="swap">Swap</a>
+                            <a class="btn" onclick="$('.typeahead').val(''); $('#routedisplay').hide(); YY._routeGroup.clearLayers();YY.render_(system,map); YY._routeGroupDirection.clearLayers();"> Clear </a>
                         </div>
                     </div>
                 </div>
@@ -343,7 +91,7 @@
                     </div>
                 </div>
             </div>
-			 <div class="accordion-group">
+            <div class="accordion-group">
                 <div class="accordion-heading">
                     <a  class="accordion-toggle" data-parent="#accordion2" href="bhadadar.html" target="_blank">
                         Bus Fare
@@ -359,17 +107,17 @@
                 </div>
                 <div id="collapse3" class="accordion-body collapse">
                     <div class="accordion-inner">
-                        Designed By: </br></br>Suresh Shrestha</br>Prabesh Shrestha</br>Prakash Ghimire</br>Amrit Gautam</br><b>Kathmandu University</b></br>
-						Coordinated By: Amrit Karmacharya and Prabhas Pokhrel</br>
-						This Project was started by the Monsooncollective Group with Prabhas Pokhrel.</br>
-						We, KU Students have resumed and modified it with the Supervision of Shashish Maharjan and Subash Ghimire.
+                        <b>Designed By:</b> <br/>
+                        <a href="http://ku.edu.np/dcge/mission.htm">Kathmandu University Geomatics</a> and <a href="http://Monsooncollective.org"> Monsoon Collective </a> <br/>
+                        <b>KU contributors:</b> <a href="https://twitter.com/neogeomat" target="_blank">Amrit Karmacharya</a>,<a href="https://twitter.com/SureshSuress" target="_blank">Suresh Shrestha</a>, Prabesh Shrestha, <a href="https://twitter.com/Ghimire07" target="_blank">Prakash Ghimire</a>, Amrit Gautam, <a href="https://twitter.com/_shashish_" target="_blank">Shashish Maharjan</a>, Subash Ghimire. <br/>
+                        <b>Monsoon Collective contributors:</b> <a href="https://twitter.com/prabhasp" target="_blank">Prabhas Pokharel</a>, Robert Ochshorn, Sakar Pudasaini, Suveg Pandey, Shirish Pokharel, Anshu Khadka. <br/>
+                        <b>KathmanduLivingLabs contributors:</b> <a href="https://twitter.com/neogeomat" target="_blank">Amrit Karmacharya</a>,<a href="https:twitter.com/https://twitter.com/PoshanNiraula1">Poshan Niraula</a>
+                        <b>Coordinated By:</b> <a href="https://twitter.com/neogeomat" target="_blank">Amrit Karmacharya</a> and <a href="https://twitter.com/prabhasp" target="_blank">Prabhas Pokharel</a><br/><br/>
+                        The project was started by the Monsoon Collective; KU students have futher developed it. Currently KathmanduLivingLabs is maintaining it.<br>
+                        Refer to this <a href="http://wiki.openstreetmap.org/wiki/Nepal/Yatayat" target="_blank">wiki</a> for more information
                     </div>
                 </div>
             </div>
-			
-			
-			
-			
             <div class="accordion-group">
                 <div class="accordion-heading">
                     <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapse4">
@@ -423,7 +171,7 @@
                 </div>
             </div>
         
-			<div class="accordion-group">
+            <div class="accordion-group">
                 <div class="accordion-heading">
                     <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2"
                     href="#collapse5">
@@ -431,27 +179,378 @@
                     </a>
                 </div>
                 <div id="collapse5" class="accordion-body collapse">
-                    <div class="accordion-inner">
-						<iframe src="https://docs.google.com/forms/d/1HKyiRd_6WbKv8xOW243-0J9HRzOT7muQsC8nG30llJw/viewform?embedded=true" width="250" height="500" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div id="mydiv">
-			<div id="myCarousel" class="carousel slide" >
-              		      <!-- Carousel items -->
-                              <div class="carousel-inner">
-                                <div class="active item"><img src="s-bus.jpg" width="262 px" height="182"></div>
-                                <div class="item"><img src="tempo.jpg"width="262 px" height="182"></div>
-                                <div class="item"><img src="micro.jpg"width="262 px" height="182"></div>
-								<div class="item"><img src="yatayat office.gif"width="262 px" height="182"></div>
-                              </div>
-                              <!-- Carousel nav -->
-                              <a class="carousel-control left" href="#myCarousel" data-slide="prev">&lsaquo;</a>
-                              <a class="carousel-control right" href="#myCarousel" data-slide="next">&rsaquo;</a>
-			</div>
-		</div>
-		
+                <div class="accordion-inner">
+                    <iframe src="https://docs.google.com/forms/d/1HKyiRd_6WbKv8xOW243-0J9HRzOT7muQsC8nG30llJw/viewform?embedded=true" width="250" height="500" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>
+                </div>
+            </div>
+        </div>
+        </div>
+        <div id="mydiv">
+            <div id="myCarousel" class="carousel slide" >
+                          <!-- Carousel items -->
+              <div class="carousel-inner">
+                <div class="active item"><img src="s-bus.jpg" width="262 px" height="182"></div>
+                <div class="item"><img src="tempo.jpg"width="262 px" height="182"></div>
+                <div class="item"><img src="micro.jpg"width="262 px" height="182"></div>
+              </div>
+              <!-- Carousel nav -->
+              <a class="carousel-control left" href="#myCarousel" data-slide="prev">&lsaquo;</a>
+              <a class="carousel-control right" href="#myCarousel" data-slide="next">&rsaquo;</a>
+            </div>
+        </div>
+        <script type="text/javascript" language="javascript">
+                    // UI HACK
+            $('#textboxes').hide();
+            $('#routedisplay').hide();
+            // initialize the map
+            var map = new L.Map('publicTransportMap');
+
+            //var ktmBB = "85.2885,27.6839,85.3368,27.7299";
+            var system;
+            var osmdata;
+            var routed;
+            var routed_route;
+            YY.fromConfig("config.stable.json", function(sys) {
+                system = sys;
+                YY.render_(system, map, undefined, //includeIDObject; try {"2269045": true} for an example
+                undefined // leafletBaseOptions
+                );
+                //ROUTING
+                var stopNames = _.compact(_.pluck(system.allStops(), 'name'));
+                   
+                // var delay = 200;
+                var stopnamesdict = [];
+                var i = 0;
+               _.each(stopNames, function(stopNames) {
+                    stopnamesdict.push({data:stopNames,value:stopNames})
+                    i=i+1;
+                });
+                var stopNames = _.compact(_.pluck(system.allStops(), 'name'));
+                $('.typeahead').typeahead({
+                    source: stopNames,
+                    minLength: 3,
+                    items: 5
+
+                });
+
+                $('#textboxes').show();
+                // $('input.typeahead').change(function(f) {
+                $('#swap').click(function(){
+                    // console.log("last ramailo");
+                    temp = $('#startstop')[0].value;
+                    $('#startstop')[0].value =  $('#endstop')[0].value;
+                    $('#endstop')[0].value =  temp;
+                    $('#go').click();
+                })
+                $('#go').click(function(){
+                    map.spin(true);
+                    var start = $('#startstop')[0].value;
+                    var end = $('#endstop')[0].value;
+                    var dist = 0;
+                    if (start && end) {
+                        if (!YY._routeGroup) {
+                            YY._routeGroup = new L.LayerGroup().addTo(map);
+                        }
+                        YY._routeGroup.clearLayers();
+                        if (!YY._routeGroupDirection) {
+                            YY._routeGroupDirection = new L.LayerGroup().addTo(map);
+                        }
+                        YY._routeGroupDirection.clearLayers();
+                        var gettingThereRoutes = system.takeMeThereByName(start, end);
+                        routed = gettingThereRoutes;
+                        var bounds = new L.LatLngBounds();
+                        if (gettingThereRoutes === 'FAIL') alert('cannot find a route from ', start, ' to ', end);
+                        else {
+                            var inclusionDict = {};
+                            var overrideDict = {};
+                            var outputHTML = "";
+                            _(system.routes).each(function(r) {
+                                inclusionDict[r.id] = true;
+                            }); // render everything
+                            counter = 0;
+
+                            _(gettingThereRoutes).each(function(eachroute, idx) {
+                                //show routed route
+                                var endseg = [];
+                                // find the direction of eachroute compared to original route direction
+                                originalroute = system.routeDict[eachroute.id];
+                                var direction;
+                                if(originalroute.stops.indexOf(eachroute.stops[0])<originalroute.stops.indexOf(_.last(eachroute.stops))){
+                                    direction = 1;
+                                }else{
+                                    direction = -1;
+                                }
+
+                                var startsegid, endsegid;
+                                var startsegindex,endsegindex;
+
+                                // finding index of first and last segment in list of segment                                
+                                segmentorderindex = _.map(eachroute.segments,function(r){return r.id});
+
+                                startsegidnew = system.stopToSegDict[eachroute.stops[0].id];  //list of osmid
+                                if(direction == -1){
+                                for(startsegindex = segmentorderindex.indexOf(_.min(startsegidnew));startsegindex == -1;){
+                                    startsegidnew.splice(startsegidnew.indexOf(_.min(startsegidnew)),1);
+                                    startsegindex = segmentorderindex.indexOf(_.min(startsegidnew));
+                                }}else if (direction == 1) {for(startsegindex = segmentorderindex.indexOf(_.max(startsegidnew));startsegindex == -1;){
+                                    startsegidnew.splice(startsegidnew.indexOf(_.max(startsegidnew)),1);
+                                    startsegindex = segmentorderindex.indexOf(_.max(startsegidnew));
+                                }};
+
+                                endsegidnew = system.stopToSegDict[_.last(eachroute.stops).id];  //list of osmid
+                                if(direction == -1){
+                                for(endsegindex = segmentorderindex.indexOf(_.max(endsegidnew));endsegindex == -1;){
+                                    endsegidnew.splice(endsegidnew.indexOf(_.max(endsegidnew)),1);
+                                    endsegindex = segmentorderindex.indexOf(_.max(endsegidnew));
+                                }}
+                                else if(direction == 1){
+                                for(endsegindex = segmentorderindex.indexOf(_.min(endsegidnew));endsegindex == -1;){
+                                    endsegidnew.splice(endsegidnew.indexOf(_.min(endsegidnew)),1);
+                                    endsegindex = segmentorderindex.indexOf(_.min(endsegidnew));
+                                }}
+                                // console.log("startsegindex",startsegindex,"endsegindex",endsegindex);
+                                // debugger;
+                                
+                                // swap if startsegindex is greater
+                                //actually drawing the route
+                                var defaultOptions = {
+                                    "route": function(idx) {
+                                        if(idx == 0){
+                                            color = "rgb(0,155,58)";
+                                        }else if(idx == 1){
+                                            color = "rgb(255,99,25)";
+                                        }else if(idx == 2){
+                                            color = "rgb(0,57,166)";
+                                        }else{
+                                            color = get_random_color();
+                                        }
+                                        return {
+                                            color:color,
+                                            opacity: 1,
+                                            weight: 10
+                                        };
+                                    },
+                                    "stop": {
+                                        color: '#378AAD',
+                                        fillOpacity: 0.5,
+                                        radius: 5
+                                    }
+                                };
+
+                                var eachroutestyleoption = function(idx){return defaultOptions.route(idx)};
+                                dist = 0;
+
+                                var endsegmentrender = function (enddirection , segindex , station) {
+                                    var insert, shift, thisSeg, nextSeg;
+                                    if(enddirection=="first"){
+                                        thisSeg = eachroute.segments[segindex], nextSeg = eachroute.segments[segindex + direction];
+                                        if(typeof nextSeg === "undefined"){
+                                            // debugger;
+                                            nextSeg = eachroute.segments[segindex - direction];
+                                        }
+                                    } else if (enddirection == "last") {
+                                        thisSeg = eachroute.segments[segindex], nextSeg = eachroute.segments[segindex - direction];
+                                        if(typeof nextSeg === "undefined"){
+                                            // debugger;
+                                            nextSeg = eachroute.segments[segindex + direction];
+                                        }
+                                    };
+                                    // debugger;
+                                
+                                    var thisSegFirst = thisSeg.listofnodeids[0];
+                                    var thisSegLast  = _.last(thisSeg.listofnodeids);
+                                    var nextSegFirst = nextSeg.listofnodeids[0];
+                                    var nextSegLast  = _.last(nextSeg.listofnodeids);
+
+                                    // finding the common node in joined segments
+                                    var commonNode;
+                                    if(thisSegFirst == nextSegFirst){
+                                        commonNode = thisSegFirst;
+                                    }else if (thisSegFirst == nextSegLast) {
+                                        commonNode = thisSegFirst;
+                                    }else if (thisSegLast == nextSegFirst) {
+                                        commonNode = thisSegLast;
+                                    }else if (thisSegLast == nextSegLast) {
+                                        commonNode = thisSegLast;
+                                    };
+                                    console.log("thisSeg",'http://www.openstreetmap.org/browse/way/'+thisSeg.id,"nextSeg",'http://www.openstreetmap.org/browse/way/'+nextSeg.id,"commonNode",'http://www.openstreetmap.org/browse/node/'+commonNode);
+                                    insert = thisSeg.listofnodeids.indexOf(station.id)<thisSeg.listofnodeids.indexOf(commonNode);
+                                    insert?shift=1:shift=-1;
+                                    partofsegment = [];
+                                    for(i=thisSeg.listofnodeids.indexOf(station.id);i !== thisSeg.listofnodeids.indexOf(commonNode);i=i+shift){
+                                        partofsegment.push(thisSeg.dictofnodes[thisSeg.listofnodeids[i]]);
+                                                }
+                                    // debugger;
+                                    // return _.union(partofsegment);
+
+                                    if(insert){
+                                    return _.union(partofsegment,_.map(nextSeg.listofnodeids,function(n){return nextSeg.dictofnodes[n]}));}else{
+                                        return _.union(_.map(nextSeg.listofnodeids,function(n){return nextSeg.dictofnodes[n]}),partofsegment);
+                                    }
+
+                                };
+
+                                firstsegmentpart = endsegmentrender("first",startsegindex,eachroute.stops[0]);
+                                if(firstsegmentpart.length){
+                                    var segMPLfirst = new L.Polyline(firstsegmentpart, eachroutestyleoption(idx));
+                                    segMPLfirst.bindPopup("<a href='http://www.openstreetmap.org/browse/way/" + startsegid + "' target='_blank'>");
+                                    var arrow = new L.polylineDecorator(segMPLfirst, {
+                                        patterns: [{
+                                            offset: 25,
+                                            repeat: 50,
+                                            symbol: L.Symbol.arrowHead({
+                                                pixelSize: 15,
+                                                pathOptions: {
+                                                    fillOpacity: 1,
+                                                    weight: 0
+                                                }
+                                            })
+                                        }]
+                                    });
+
+                                    // YY._routeGroupDirection.addLayer(arrow);
+                                    // YY._routeGroup.addLayer(segMPLfirst);
+                                   // map.addLayer(YY._routeGroup);
+                                }
+                                
+                                lastsegmentpart = endsegmentrender("last",endsegindex,_.last(eachroute.stops));
+
+                                if(lastsegmentpart.length){
+                                    var segMPLlast = new L.Polyline(lastsegmentpart, eachroutestyleoption(idx));
+                                    segMPLlast.bindPopup("<a href='http://www.openstreetmap.org/browse/way/" + startsegid + "' target='_blank'>");
+                                    var arrow = new L.polylineDecorator(segMPLlast, {
+                                        patterns: [{
+                                            offset: 25,
+                                            repeat: 50,
+                                            symbol: L.Symbol.arrowHead({
+                                                pixelSize: 15,
+                                                pathOptions: {
+                                                    fillOpacity: 1,
+                                                    weight: 0
+                                                }
+                                            })
+                                        }]
+                                    });
+
+                                    // YY._routeGroupDirection.addLayer(arrow);
+                                    // YY._routeGroup.addLayer(segMPLlast);
+                                   // map.addLayer(YY._routeGroup);
+                                }
+                                           
+                                
+                                var segment_direction;
+                                startsegindex < endsegindex ? segment_direction = 1 : segment_direction = -1;
+                                if (startsegindex - endsegindex == 1 || startsegindex - endsegindex == -1) {}else{
+                                for (var segid = startsegindex; segid != endsegindex; segid+=segment_direction) {
+                                    // console.log("segid",segid);
+                                    seg = eachroute.segments[segid];
+                                    if(typeof seg === "undefined"){}else{
+                                    if(seg.listOfLatLng.length){
+                                    var segMPL = new L.Polyline(_.map(seg.listOfLatLng,function(arr){return {lat:parseFloat(arr[0]),lon:parseFloat(arr[1])}}), eachroutestyleoption(idx));
+                                    segMPL.bindPopup("<a href='http://www.openstreetmap.org/browse/way/" + seg.id + "' target='_blank'>" + seg.id + "</a>," + segid + "");
+                                    var arrow = new L.polylineDecorator(segMPL, {
+                                        patterns: [{
+                                            offset: 25,
+                                            repeat: 50,
+                                            symbol: L.Symbol.arrowHead({
+                                                pixelSize: 15,
+                                                pathOptions: {
+                                                    fillOpacity: 1,
+                                                    weight: 0
+                                                }
+                                            })
+                                        }]
+                                    });
+
+                                    // YY._routeGroupDirection.addLayer(arrow);
+
+                                    YY._routeGroup.addLayer(segMPL);
+                                       map.addLayer(YY._routeGroup);
+                                    }
+                                    // debugger;
+                                    // console.log(YY._routeGroup);
+                                    for (i = 0; i < (seg.listOfLatLng.length) - 1; i++) {
+                                        dist += distanc(seg.listOfLatLng[i][0], seg.listOfLatLng[i][1], seg.listOfLatLng[i + 1][0], seg.listOfLatLng[i + 1][1]);
+                                    }
+                                }
+                                }}
+                                
+                                map.removeLayer(YY._routeGroup);
+                                map.addLayer(YY._routeGroup);
+                                if(dist>200){
+                                    outputHTML += "<div style=\"color:"+eachroutestyleoption(idx).color+"; width=65%; top:60; font-family:cursive;\">Get on " + toTitleCase(eachroute.transport) + " " + removeundefinedstrings(eachroute.ref) + " (" + eachroute.name + ") at " + eachroute.stops[0].name + " and ride till " + _.last(eachroute.stops).name + " with distance of " + Math.round(dist)/1000 + " km" + "</div>";}
+                                else{
+                                    outputHTML += "<div style=\"color:"+eachroutestyleoption(idx).color+"; width=65%; top:60; font-family:cursive;\">Walk from " + eachroute.stops[0].name + " to " + _.last(eachroute.stops).name + " with distance of " + Math.round(dist) + " m" + "</div>";
+                            }
+                            }
+                            );
+
+                            YY._routeGroup.eachLayer(function(el){
+                                for (var i = 0; i <= el._latlngs.length; i++) {
+                                    bounds.extend(el._latlngs[i]);
+                                };
+                            });
+                            map.fitBounds(bounds);
+                            //sures
+
+                            YY.render_(system, map, inclusionDict, {
+                                route: {
+                                    color: '#378AAD',
+                                    opacity: 1,
+                                    weight: 1
+                                }
+                                // stop: {color: '#378AAD', fillOpacity: 0.5, radius: 5}
+                            }, overrideDict);
+                            $('#routedisplay').show();
+                            $('#routedisplay').html(outputHTML);
+                            map.spin(false);
+                        }
+                    } 
+                    else {
+                        YY.render_(system, map);
+                        $('#routedisplay').hide()
+                        map.spin(false);
+                    }
+                });
+                routeinfopanel(system.routeDict);
+                if (YY.TILE_SOURCE) {
+                    if (YY.WAX) {
+                        wax.tilejson(YY.TILE_SOURCE, function(tilejson) {
+                            map.addLayer(new wax.leaf.connector(tilejson));
+                        });
+                    } else {
+                        var tiles = new L.TileLayer(YY.TILE_SOURCE, {
+                            attribution: YY.ATTRIBUTION
+                        });
+                        map.addLayer(tiles);
+                    }
+                }
+                map.setView(new L.LatLng(YY.LAT, YY.LNG), 13);
+                L.control.scale().addTo(map);
+                //auto init routing at start
+                // document.getElementById("startstop").value ="Thimi";
+                // document.getElementById("endstop").value ="Chardobato";
+// $('#go').click();
+            });
+            function get_random_color() {
+                var letters = '0123456789ABCDEF'.split('');
+                var color = '#';
+                for (var i = 0; i < 6; i++) {
+                    color += letters[Math.round(Math.random() * 15)];
+                }
+                return color;
+            }
+
+            function toTitleCase(str) {
+                return str.replace(/\w\S*/g, function(txt) {
+                    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                });
+            }
+
+            function removeundefinedstrings(str){
+                return str?str:"";
+            }
+        </script>
     </body>
 
 </html>
